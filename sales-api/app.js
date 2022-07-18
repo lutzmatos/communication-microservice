@@ -1,12 +1,8 @@
 import express from "express";
-//import config from "./src/config/db/config.js"
-
-// import * as db from './src/config/db/initial.js';
-// db.createInicialData();
 
 const app = express();
 const env = process.env;
-const PORT = env.PORT || 8080;
+const PORT = env.PORT || 8082;
 
 app.get(
     '/api/status',
@@ -14,7 +10,7 @@ app.get(
     {
         return res.status(200).json(
             {
-                service: "Auth-API",
+                service: "Sales-API",
                 status: "up",
                 httpStatus: "200"
             }
