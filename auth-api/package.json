@@ -1,13 +1,16 @@
 {
     "name": "auth-api",
     "version": "1.0.0",
-    "main": "index.js",
+    "main": "app.js",
     "license": "MIT",
     "type": "module",
-    "scripts": {
-        "startDev": "nodemon app.js"
+    "scripts": 
+    {
+        "start": "supérvisor app.js",
+        "dev": "nodemon app.js"
     },
-    "dependencies": {
+    "dependencies": 
+    {
         "bcrypt": "^5.0.1",
         "cors": "^2.8.5",
         "express": "^4.18.1",
@@ -15,7 +18,8 @@
         "pg": "^8.7.3",
         "sequelize": "^6.21.3"
     },
-    "devDependencies": {
+    "devDependencies": 
+    {
         "nodemon": "^2.0.19"
     }
 }

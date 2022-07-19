@@ -5,7 +5,8 @@ const sequelize = new Sequelize(
     "postgres", 
     "postgres",
     {
-        host: 'localhost',
+        host: 'auth-db',
+        // host: 'localhost',
         dialect: 'postgres',
         port: 40101,
         quoteIdentifiers: false,
@@ -25,7 +26,7 @@ sequelize
 .then(
     () =>
     {
-        console.log('Conectado...');
+        console.log('Banco de dados online e conectado!');
     }
 )
 .catch(

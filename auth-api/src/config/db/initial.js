@@ -1,6 +1,5 @@
 import bcrypt from 'bcrypt';
 import User from './../../modules/user/model/User.js'
-//import config from "./config.js"
 
 export async function createInicialData()
 {
@@ -20,6 +19,14 @@ export async function createInicialData()
             {
                 name: 'Root',
                 email: 'root@root.com',
+                password
+            }
+        );
+
+        await User.create(
+            {
+                name: 'Admin',
+                email: 'admin@admin.com',
                 password
             }
         );

@@ -1,7 +1,17 @@
 FROM node:14
-WORKDIR .
-COPY package*.json ./
-RUN yarn
-COPY . .
+
+USER root
+
+RUN mkdir /app
+
+WORKDIR /app
+
+COPY package*.json .
+
+RUN yarn install
+RUN yarn global add nodemon
+RUN yarn global add supervisor
+
 EXPOSE 8080
-CMD ["node", "app.js"]
+
+CMD ["/bin/bash", "src/scripts/init.sh"]
