@@ -13,6 +13,8 @@ class UserService
         try
         {
 
+            console.log(req.authUser);
+
             const { email } = req.params;
             const { authUser } = req;
 
