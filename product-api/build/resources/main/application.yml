@@ -1,5 +1,5 @@
 server:
-  port: ${PORT:8081}
+  port: ${JAVA_PRODUCT_PORT_INTERNAL:8081}
 
 spring:
 
@@ -11,7 +11,7 @@ spring:
 
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:40102/product-db
+    url: jdbc:postgresql://${POSTGRES_PRODUCT_HOST:localhost}:${POSTGRES_PRODUCT_PORT_EXTERNAL:40102}/product-db
     username: postgres
     password: postgres
     initialization-mode: always
@@ -38,7 +38,7 @@ spring:
 app-config:
 
   services:
-    sales: http://${SALES_HOST:localhost}:${SALES_PORT:8082}
+    sales: http://${NODE_SALES_HOST:localhost}:${NODE_SALES_PORT:8082}
 
   secrets:
     api-secret: ${API_SECRET:YmlzY29pdG8tbW9saGFkby1uYW8tc2UtY29tZQ==}
