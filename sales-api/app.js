@@ -2,7 +2,10 @@ import express from "express";
 
 import { connectMongoDb } from './src/config/db/mongo/config.js';
 import { connectRabbitMq } from './src/config/rabbitmq/config.js';
+
 import Order from './src/modules/sales/model/Order.js';
+// import { listenToSalesConfirmation } from './src/modules/sales/rabbitmq/salesConfirmationListener.js';
+// import { sendMessageToProductStockUpdateQueue } from './src/modules/product/rabbitmq/productStockUpdateSender.js';
 
 import middlewareAuth from './src/middlewares/auth/Auth.js';
 
@@ -16,11 +19,45 @@ app.use(express.json());
 connectRabbitMq();
 connectMongoDb();
 
+// listenToSalesConfirmation();
+
 // Route check
 app.get(
     '/api/status',
     async (req, res) => 
     {
+        return res.status(200).json(
+            {
+                service: "Sales-API",
+                status: "up",
+                httpStatus: "200"
+            }
+        );
+    }
+);
+
+// Route check
+app.get(
+    '/test/mq',
+    async (req, res) => 
+    {
+        // sendMessageToProductStockUpdateQueue(
+        //     [
+        //         {
+        //             productId: 1001,
+        //             quantity: 2
+        //         },
+        //         {
+        //             productId: 1002,
+        //             quantity: 2
+        //         },
+        //         {
+        //             productId: 1003,
+        //             quantity: 2
+        //         }
+        //     ]
+        // );
+
         return res.status(200).json(
             {
                 service: "Sales-API",

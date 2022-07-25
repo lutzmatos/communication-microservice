@@ -3,70 +3,66 @@
  */
 
 // RabbitMQ
-import amqp from 'amqplib/callback_api.js';
-
-// RabbitMQ
-import {
-    RABBIT_MQ_HOST,
-    RABBIT_MQ_PORT,
-    RABBIT_MQ_USERNAME,
-    RABBIT_MQ_PASSWORD,
-    RABBIT_MQ_URL
-} from './../constants.js';
-
-/**
- * Attributes
- */
-
-const local = {
-    performed: false,
-    connection: null,
-    channel: null,
-    WAIT_TO_DISCONNECT: 500
-};
+import RabbitMQCommand from './RabbitMQCommand.js';
 
 /**
  * Implementation
  */
 
-class RabbitMQ 
+class RabbitMQ extends RabbitMQCommand
 {
 
-    constructor()
+    constructor(...args)
     {
-        this.reset();
+        super(...args);
     }
 
+    /***************************************************************************
+     * Getters/Setters
+     **************************************************************************/
+
+    // ...
+
+    /***************************************************************************
+     * Handlers
+     **************************************************************************/
+
     /**
-     * @description Inicialização segura das filas.
-     * @return {RabbitMQ}
+     * @desciption Centralizador da inicialização do objeto.
+     * @returns {RabbitMQ}
      */
-    init(callback)
+    async init()
     {
 
-        if (!local.performed)
+        try
         {
-            this.connect(
-                () =>
-                {
 
-                    try
-                    {
+            // Finalização segura de tudo
+            await this.start();
 
-                        // Execução dos recursos de inicialização
-                        callback(this);
-
-                        // Vamos inibir inicialização duplicada
-                        local.performed = true;
-
-                    }
-                    catch (error)
-                    {
-                        console.error(error);
-                    }
-
-                }
+            console.log(
+                '\n',
+                '###############################\n',
+                'RabbitMQ conectado!\n',
+                '###############################\n'
             );
+
+        }
+        catch (error)
+        {
+
+            //console.error(error);
+
+            console.log(
+                '\n',
+                '+++++++++++++++++++++++++++++++\n',
+                'RabbitMQ desconectado!\n',
+                '+++++++++++++++++++++++++++++++\n'
+            );
+
+            // Tentativa de nova conexão
+            await this.gracefullyRestart();
+
         }
 
         return this;
@@ -74,177 +70,225 @@ class RabbitMQ
     }
 
     /**
-     * @description Conexão com o servidor RabbitMQ.
-     * @return {Promise}
+     * @desciption Centralizador da finalização do objeto.
+     * @returns {RabbitMQ}
      */
-    connect(callback)
-    {
-        return new Promise(
-            (resolve, reject) =>
-            {
-
-                // Inicialização da conexão
-                amqp.connect(
-                    RABBIT_MQ_URL, 
-                    (_error, _connection) =>
-                    {
-
-                        // Lançamento da exceção
-                        if (_error) return reject(_error);
-
-                        // Armazenamento temporário da conexão
-                        local.connection = _connection;
-
-                        // Criação do canal de comunicação
-                        _connection.createChannel(
-                            (__error, __channel) =>
-                            {
-
-                                // Lançamento da exceção
-                                if (__error) return reject(__error);
-
-                                // Armazenamento temporário do canal
-                                local.channel = __channel;
-
-                                // Retorno do cliente
-                                callback();
-
-                                // Fim do processo
-                                resolve(true);
-
-                            }
-                        );
-
-                    }
-                );
-
-                // Finalização da conexão
-                this.disconnect();
-
-            }
-        );
-        
-    }
-
-    /**
-     * @description Desconexão com o servidor RabbitMQ.
-     * @return {RabbitMQ}
-     */
-    disconnect()
+    async finish()
     {
 
-        // Invocação tardia da desconexão.
-        setTimeout(
-            ()  =>
-            {
-                this.close().reset();
-                console.log('-------------------------------------------------');
-                console.log('RabbitMQ desconectado!');
-                console.log('-------------------------------------------------');
-            }, 
-            local.WAIT_TO_DISCONNECT
-        );
-
-        return this;
-
-    }
-
-    /**
-     * @description Encerramento da conexão.
-     * @return {RabbitMQ}
-     */
-    close()
-    {
-
-        // Encerramento
-        if (local.connection)  local.connection.close();
-
-        return this;
-
-    }
-
-    /**
-     * @description Estado inicial do objeto.
-     * @return {RabbitMQ}
-     */
-    reset()
-    {
-
-        local.connection = null;
-        local.channel = null;
-
-        return this;
-
-    }
-
-    /**
-     * @description Estado inicial do objeto.
-     * @return {RabbitMQ}
-     */
-    createQueue(topic, routingKey, queue)
-    {
-
-        // Conexão e canal são objetos obrigatórios
-        if (!local.connection || !local.channel) 
+        try
         {
-            throw new Error("Connection was not found");
-        };
 
-        //
-        local.channel.assertExchange(topic, "topic", {durable: true});
+            // Não vamos forçar a reconexão
+            this.turnOffKeepAlive();
 
-        //
-        local.channel.assertQueue(queue, {durable: true});
+            // Finalização segura de tudo
+            await this.stop();
 
-        //
-        local.channel.bindQueue(queue, topic, routingKey);
+        }
+        catch (error)
+        {
+            throw error;
+        }
 
         return this;
 
     }
 
-
-
-    dispatcher()
+    /**
+     * @desciption Inicialização segura da aplicação.
+     * @returns {RabbitMQ}
+     */
+    async start()
     {
 
-        // 
-        if (!local.send.queue || !local.send.message) return;
+        try
+        {
 
-        //
-        local.channel.assertExchange(
-            local.send.topic, 
-            "topic", 
-            {
-                durable: true
-            }
-        );
+            // Finalização segura de tudo
+            await this.stop();
 
-        //
-        local.channel.assertQueue(
-            local.send.queue, 
-            {
-                durable: true
-            }
-        );
+            // Vamos sinalizar que o objeto está iniciando
+            this.turnOnStarting();
 
-        // 
-        local.channel.sendToQueue(local.send.queue, Buffer.from(local.send.message));
+            // Inicialização do objeto que representa a conexão
+            await this.connectionStart();
+
+            // Inicialização do objeto que representa o canal
+            await this.channelStart();
+
+            // Vamos sinalizar que o objeto está iniciado
+            this.turnOnOnline();
+
+        }
+        catch (error)
+        {
+            throw error;
+        }
+
+        return this;
 
     }
 
-    send(queue, message)
+    /**
+     * @desciption Finalização segura da aplicação.
+     * @returns {RabbitMQ}
+     */
+    async stop()
     {
 
-        //
-        local.send.queue = queue;
-        local.send.message = message;
+        try
+        {
 
-        // A conexão irá disparar automaticamente a mensagem
-        this.connect();
+            // Finalização do objeto que representa o canal
+            await this.channelFinish();
+
+            // Finalização do objeto que representa a conexão
+            await this.connectionFinish();
+
+            // Vamos sinalizar que o objeto está finalizado
+            this.turnOnOffline();
+
+        }
+        catch (error)
+        {
+            throw error;
+        }
+
+        return this;
+
+    }
+
+    /**
+     * @desciption Inicialização segura da conexão.
+     * @returns {RabbitMQ}
+     */
+    async connectionStart()
+    {
+
+        try
+        {
+
+            // Configuração do objeto de conexão
+            await this.configConnection();
+
+            // Configuração das escutas na conexão
+            this.configListenConnection();
+
+        }
+        catch (error)
+        {
+            throw error;
+        }
+
+        return this;
+
+    }
+
+    /**
+     * @desciption Finalização segura da conexão.
+     * @returns {RabbbitMQ}
+     */
+    async connectionFinish()
+    {
+
+        try
+        {
+
+            // Desconfiguração das escutas da conexão
+            this.misconfigListenConnection();
+
+            // Desconfiguração da conexão
+            await this.misconfigConnection();
+
+        }
+        catch (error)
+        {
+            throw error;
+        }
+
+        return this;
+
+    }
+
+    /**
+     * @desciption Inicialização segura do canal.
+     * @returns {RabbitMQ}
+     */
+    async channelStart()
+    {
+
+        try
+        {
+
+            // Configuração do objeto do canal
+            await this.configChannel();
+
+            // Configuração das escutas no canal
+            this.configListenChannel();
+
+        }
+        catch (error)
+        {
+            throw error;
+        }
+
+        return this;
+
+    }
+
+    /**
+     * @desciption Finalização segura do canal.
+     * @returns {RabbbitMQ}
+     */
+    async channelFinish()
+    {
+
+        try
+        {
+
+            // Desconfiguração das escutas do canal
+            this.misconfigListenChannel();
+
+            // Desconfiguração da canal
+            await this.misconfigChannel();
+
+        }
+        catch (error)
+        {
+            throw error;
+        }
+
+        return this;
+
+    }
+
+    /**
+     * @desciption Reinicialização segura do objeto.
+     * @returns {RabbitMQ}
+     */
+    gracefullyRestart()
+    {
+
+        // Reinicialização inibida
+        if (!this.keepAlive) return this;
+
+        // Se o serviço não estiver desligado, então nem vamos tentar iniciá-lo
+        if (!this.isOffline) return this;
+
+        // Vamos aguardar alguns segundos e tentar conectar novamente
+        setTimeout(
+            async () =>
+            {
+                await this.init();
+            },
+            this.config.config.WAIT_TO_RECONNECT
+        );
+
+        return this;
 
     }
 
 }
 
-export default new RabbitMQ;
+export default RabbitMQ;

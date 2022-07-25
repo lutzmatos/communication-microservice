@@ -1,4 +1,4 @@
-import RabbitMQ from './../rabbitmq/lib/RabbitMQ.js';
+import RabbitMQ from './lib/RabbitMQ.js';
 
 // RabbitMQ
 import {
@@ -13,26 +13,68 @@ export async function connectRabbitMq()
 {
     try
     {
-        await RabbitMQ.init(
-            (instance) =>
+        const mq = new RabbitMQ;
+        await mq.init();
+        // const exchange = await mq.createExchange(EXCHANGE_PRODUCT_TOPIC, 'topic', { durable: true });
+        // const queue1 = await mq.createQueue(PRODUCT_STOCK_UPDATE_QUEUE, { durable: true });
+        // const queue2 = await mq.createQueue(SALES_CONFIRMATION_QUEUE, { durable: true });
+        // const bind1 = await mq.bindQueue(queue1.name, exchange.name, PRODUCT_STOCK_UPDATE_ROUTING_KEY);
+        // const bind2 = await mq.bindQueue(queue2.name, exchange.name, SALES_CONFIRMATION_ROUTING_KEY);
+        const build1 = await mq.buildQueue(
             {
-
-                // Criação da fila de produtos
-                instance.createQueue(EXCHANGE_PRODUCT_TOPIC, PRODUCT_STOCK_UPDATE_ROUTING_KEY, PRODUCT_STOCK_UPDATE_QUEUE);
-
-                // Criação da fila de vendas
-                instance.createQueue(EXCHANGE_PRODUCT_TOPIC, SALES_CONFIRMATION_ROUTING_KEY, SALES_CONFIRMATION_QUEUE);
-
-            }
+                name: EXCHANGE_PRODUCT_TOPIC,
+                type: 'topic',
+                options: 
+                {
+                    durable: true
+                }
+            },
+            {
+                name: PRODUCT_STOCK_UPDATE_QUEUE,
+                options: 
+                {
+                    durable: true
+                }
+            },
+            PRODUCT_STOCK_UPDATE_ROUTING_KEY
+        );
+        const build2 = await mq.buildQueue(
+            {
+                name: EXCHANGE_PRODUCT_TOPIC,
+                type: 'topic',
+                options: 
+                {
+                    durable: true
+                }
+            },
+            {
+                name: SALES_CONFIRMATION_QUEUE,
+                options: 
+                {
+                    durable: true
+                }
+            },
+            SALES_CONFIRMATION_ROUTING_KEY
         );
 
-        console.log('-------------------------------------------------');
-        console.log('RabbitMQ conectado!');
-        console.log('-------------------------------------------------');
+        // console.log(exchange);
+        // console.log(queue1);
+        // console.log(queue2);
+        // console.log(bind1);
+        // console.log(bind2);
+        console.log(build1);
+        console.log(build2);
+        await mq.finish();
 
     }
     catch (error) 
     {
-        console.error(error);
-    }
+        console.log(
+            '\n',
+            '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n',
+            error,
+            '\n',
+            '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n'
+        );
+}
 }
