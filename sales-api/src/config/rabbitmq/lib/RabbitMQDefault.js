@@ -15,28 +15,20 @@ import {
     RABBIT_MQ_USERNAME,
     RABBIT_MQ_PASSWORD,
     RABBIT_MQ_URL
-} from '../constants.js';
+} from '../config.js';
 
 /**
  * Attributes
  */
 
 const STATE = {
-    OFFLINE: 0,
-    STARTING: 1,
-    ONLINE: 2
+    STOPPING: 0,
+    STOPPED: 1,
+    STARTING: 2,
+    STARTED: 3
 };
 
 const local = {
-    connection: {
-        instance: null,
-        available: false
-    },
-    channel: 
-    {
-        instance: null,    
-        available: false
-    },
     config: 
     {
         WAIT_TO_RECONNECT: 5000,
@@ -46,9 +38,7 @@ const local = {
     {
         captureRejectionSymbol,
         getEventListeners
-    },
-    state: STATE.OFFLINE,
-    keepAlive: true
+    }
 };
 
 /**
@@ -61,6 +51,26 @@ export default class RabbitMQDefault extends EventEmitter
     constructor(...args)
     {
         super(...args);
+
+        // Atributos do objeto
+        this.local = {
+            connection: {
+                instance: null,
+                available: false
+            },
+            channel: 
+            {
+                instance: null,    
+                available: false
+            }
+        };
+
+        this.id = Math.random().toString().replace('0.', '') + ':' + Math.random().toString().replace('0.', '');
+
+        this.performed = false;
+        this.keepAlive = true;
+        this.state = STATE.STOPPED;
+
     }
 
     /***************************************************************************
@@ -83,35 +93,35 @@ export default class RabbitMQDefault extends EventEmitter
 
     setConnection(value)
     {
-        local.connection.instance = value;
+        this.local.connection.instance = value;
         return this;
     }
 
     getConnection()
     {
-        return local.connection.instance;
+        return this.local.connection.instance;
     }
 
     resetConnection()
     {
-        local.connection.instance = null;
+        this.local.connection.instance = null;
         return this;
     }
 
     setChannel(value)
     {
-        local.channel.instance = value;
+        this.local.channel.instance = value;
         return this;
     }
 
     getChannel()
     {
-        return local.channel.instance;
+        return this.local.channel.instance;
     }
 
     resetChannel()
     {
-        local.channel.instance = null;
+        this.local.channel.instance = null;
         return this;
     }
 
@@ -119,88 +129,147 @@ export default class RabbitMQDefault extends EventEmitter
      * Handlers
      **************************************************************************/
 
-    turnOnOffline()
+    /**
+     * @description Reconstrução do estado desta classe.
+     * @param  {...any} args 
+     * @returns {RabbitMQDefault}
+     */
+    async rebuild(...args)
     {
-        local.state = STATE.OFFLINE;
         return this;
     }
 
-    get isOffline()
+    turnOnStopped()
     {
-        return local.state == STATE.OFFLINE;
+        this.state = STATE.STOPPED;
+        return this;
+    }
+
+    get isStopped()
+    {
+        return this.state == STATE.STOPPED;
     }
 
     turnOnStarting()
     {
-        local.state = STATE.STARTING;
+        this.state = STATE.STARTING;
         return this;
     }
 
     get isStarting()
     {
-        return local.state == STATE.STARTING;
+        return this.state == STATE.STARTING;
     }
 
-    turnOnOnline()
+    turnOnStarted()
     {
-        local.state = STATE.ONLINE;
+        this.state = STATE.STARTED;
         return this;
     }
 
-    get isOnline()
+    get isStarted()
     {
-        return local.state == STATE.ONLINE;
+        return this.state == STATE.STARTED;
+    }
+
+    turnOnStopping()
+    {
+        this.state = STATE.STOPPING;
+        return this;
+    }
+
+    get isStopping()
+    {
+        return this.state == STATE.STOPPING;
     }
 
     turnOnServerAvailable()
     {
-        local.connection.available = true;
-        return this.turnOnOnline();
+        this.local.connection.available = true;
+        return this.turnOnStarted();
     }
 
     turnOffServerAvailable()
     {
-        local.connection.available = false;
-        return this.turnOnOffline();
+        this.local.connection.available = false;
+        return this.turnOnStopped();
     }
 
     get isServerAvailable()
     {
-        return local.connection.available;
+        return this.local.connection.available;
     }
 
     turnOnChannelAvailable()
     {
-        local.channel.available = true;
-        return this.turnOnOnline();
+        this.local.channel.available = true;
+        return this.turnOnStarted();
     }
 
     turnOffChannelAvailable()
     {
-        local.channel.available = false;
-        return this.turnOnOffline();
+        this.local.channel.available = false;
+        return this.turnOnStopped();
     }
 
     get isChannelAvailable()
     {
-        return local.channel.available;
+        return this.local.channel.available;
     }
 
     turnOnKeepAlive()
     {
-        local.keepAlive = true;
+        this.keepAlive = true;
         return this;
     }
 
     turnOffKeepAlive()
     {
-        local.keepAlive = false;
+        this.keepAlive = false;
         return this;
     }
 
-    get keepAlive()
+    get isToKeepAlive()
     {
-        return local.keepAlive;
+        return this.keepAlive;
+    }
+
+
+    events()
+    {
+        this.on(
+            'starting', 
+            () => 
+            {
+                this.turnOnStarting();
+                console.log('  ==> starting...')
+            }
+        );
+        this.on(
+            'started', 
+            () => 
+            {
+                this.turnOnStarted();
+                console.log('  ==> started...');
+                this.execSync();
+            }
+        );
+        this.on(
+            'stopping', 
+            () => 
+            {
+                this.turnOnStopping();
+                console.log('  ==> stopping...');
+            }
+        );
+        this.on(
+            'stoped', 
+            () => 
+            {
+                this.turnOnStopped();
+                console.log('  ==> stoped...');
+            }
+        );
     }
 
 }

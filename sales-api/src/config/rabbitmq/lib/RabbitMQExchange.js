@@ -50,9 +50,36 @@ export default class RabbitMQExchange extends RabbitMQChannel
     // ...
 
     /***************************************************************************
-     * Handlers
+     * Helpers
      **************************************************************************/
 
+    /**
+     * @description Retornar os dados de uma "queue".
+     * @returns {JSON}
+     */
+    getQueueByName(name)
+    {
+
+        for (const value of Object.values(local.queue.list))
+        {
+            if (value.name == name)
+            {
+                return value;
+            }
+        }
+
+        throw new Error("The queue informed does not exists");
+
+    }
+
+    /***************************************************************************
+     * Handlers: Exchange
+     **************************************************************************/
+
+    /**
+     * @description Verificar se um "exchange" existe.
+     * @returns {Boolean}
+     */
     async checkExchange(name)
     {
         try
@@ -107,6 +134,10 @@ export default class RabbitMQExchange extends RabbitMQChannel
         }
 
     }
+
+    /***************************************************************************
+     * Handlers: Queue
+     **************************************************************************/
 
     /**
      * @description Criação de uma "queue".
@@ -184,6 +215,67 @@ export default class RabbitMQExchange extends RabbitMQChannel
     }
 
     /**
+     * @description Exclusão de uma "queue".
+     * @param {String} name - Nome da "queue".
+     * @param {JSON} options - Opções de exclusão da "queue"
+     * @returns {RabbitMQExchange}
+     */
+    async deleteQueue(queue = 'N/I', options = {})
+    {
+
+        try
+        {
+
+            // O canal é obrigatório
+            this.validateChannel();
+
+            // @todo: validar os dados
+
+            // Verificar se o "exchange" existe
+            await this.getChannel().deleteQueue(queue, options);
+
+            // Fim do processo
+            return this;
+
+        }
+        catch (error)
+        {
+            throw error;
+        }
+
+    }
+
+    /**
+     * @description Exclusão de mensagens pendentes em uma "queue".
+     * @param {String} name - Nome da "queue".
+     * @returns {RabbitMQExchange}
+     */
+    async purgeQueue(queue = 'N/I')
+    {
+
+        try
+        {
+
+            // O canal é obrigatório
+            this.validateChannel();
+
+            // @todo: validar os dados
+
+            // Verificar se o "exchange" existe
+            await this.getChannel().purgeQueue(queue);
+
+            // Fim do processo
+            return this;
+
+        }
+        catch (error)
+        {
+            throw error;
+        }
+
+    }
+
+    /**
      * @description Criação de uma "queue".
      * @param {JSON} exchange - Opções de configuração da "exchange".
      * @param {JSON} queue - Opções de configuração da "queue".
@@ -226,6 +318,71 @@ export default class RabbitMQExchange extends RabbitMQChannel
 
             // Vamos devolver a configuração
             return {...config};
+
+        }
+        catch (error)
+        {
+            throw error;
+        }
+
+    }
+
+    /**
+     * @description Reconstrução do estado desta classe. Reinstalação das "exchanges", "queues" e "binds".
+     * @param  {...any} args 
+     * @returns {RabbitMQExchange}
+     */
+    async rebuild(...args)
+    {
+        await super.rebuild(...args);
+
+        try
+        {
+
+            // Clonagem da lista de "exchanges" para recadastro
+            const exchangeList = [];
+            for (const config of Object.values(local.exchange.list))
+            {
+                exchangeList.push({name: config.name, type: config.type});
+            }
+            local.exchange.list = [];
+
+            // Vamos recadastrar os "exchanges"
+            for (const config of Object.values(exchangeList))
+            {
+                await this.createExchange(config.name, config.type, config.options);
+            }
+
+            // Clonagem da lista de "queues" para recadastro
+            const queueList = [];
+            for (const config of Object.values(local.exchange.list))
+            {
+                queueList.push({name: config.name, options: config.options});
+            }
+            local.queue.list = [];
+
+            // Vamos recadastrar os "queues"
+            for (const config of Object.values(queueList))
+            {
+                await this.createQueue(config.name, config.options);
+            }
+
+            // Clonagem da lista de "binds" para recadastro
+            const bindList = [];
+            for (const config of Object.values(local.bind.list))
+            {
+                bindList.push({queue: config.queue, exchange: config.exchange, key: config.key});
+            }
+            local.bind.list = [];
+
+            // Vamos recadastrar os "binds"
+            for (const config of Object.values(bindList))
+            {
+                await this.bindQueue(config.queue, config.exchange, config.key);
+            }
+
+            // Retorno da configuração usada
+            return this;
 
         }
         catch (error)

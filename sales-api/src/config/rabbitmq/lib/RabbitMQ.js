@@ -3,18 +3,25 @@
  */
 
 // RabbitMQ
+import { RABBIT_MQ_PASSWORD } from '../config.js';
 import RabbitMQCommand from './RabbitMQCommand.js';
+
+/**
+ * Attributes
+ */
+
+// ...
 
 /**
  * Implementation
  */
-
 class RabbitMQ extends RabbitMQCommand
 {
 
     constructor(...args)
     {
         super(...args);
+        this.events();
     }
 
     /***************************************************************************
@@ -28,14 +35,27 @@ class RabbitMQ extends RabbitMQCommand
      **************************************************************************/
 
     /**
+     * @description Construtor seguro de uma instância desta classe;
+     * @returns {RabbitMQ}
+     */
+    static build()
+    {
+        return (new (this)).init();
+    }
+
+    /**
      * @desciption Centralizador da inicialização do objeto.
      * @returns {RabbitMQ}
      */
     async init()
     {
 
+        // Fluxo normal
         try
         {
+
+            // Finalização segura de tudo
+            await this.stop();
 
             // Finalização segura de tudo
             await this.start();
@@ -51,13 +71,12 @@ class RabbitMQ extends RabbitMQCommand
         catch (error)
         {
 
-            //console.error(error);
-
             console.log(
                 '\n',
                 '+++++++++++++++++++++++++++++++\n',
                 'RabbitMQ desconectado!\n',
-                '+++++++++++++++++++++++++++++++\n'
+                '+++++++++++++++++++++++++++++++\n',
+                error
             );
 
             // Tentativa de nova conexão
@@ -105,11 +124,8 @@ class RabbitMQ extends RabbitMQCommand
         try
         {
 
-            // Finalização segura de tudo
-            await this.stop();
-
-            // Vamos sinalizar que o objeto está iniciando
-            this.turnOnStarting();
+            // Vamos avisar aos clientes que o objeto está iniciado
+            this.emit('starting', true);
 
             // Inicialização do objeto que representa a conexão
             await this.connectionStart();
@@ -117,8 +133,11 @@ class RabbitMQ extends RabbitMQCommand
             // Inicialização do objeto que representa o canal
             await this.channelStart();
 
-            // Vamos sinalizar que o objeto está iniciado
-            this.turnOnOnline();
+            // Reconstrução dos estados
+            await this.rebuild();
+
+            // Vamos avisar aos clientes que o objeto está iniciado
+            this.emit('started', true);
 
         }
         catch (error)
@@ -140,14 +159,17 @@ class RabbitMQ extends RabbitMQCommand
         try
         {
 
+            // Vamos avisar aos clientes que o objeto está iniciado
+            this.emit('stopping', true);
+
             // Finalização do objeto que representa o canal
             await this.channelFinish();
 
             // Finalização do objeto que representa a conexão
             await this.connectionFinish();
 
-            // Vamos sinalizar que o objeto está finalizado
-            this.turnOnOffline();
+            // Vamos avisar aos clientes que o objeto está parado
+            this.emit('stoped', true);
 
         }
         catch (error)
@@ -271,10 +293,7 @@ class RabbitMQ extends RabbitMQCommand
     {
 
         // Reinicialização inibida
-        if (!this.keepAlive) return this;
-
-        // Se o serviço não estiver desligado, então nem vamos tentar iniciá-lo
-        if (!this.isOffline) return this;
+        if (!this.isToKeepAlive) return this;
 
         // Vamos aguardar alguns segundos e tentar conectar novamente
         setTimeout(
@@ -287,6 +306,52 @@ class RabbitMQ extends RabbitMQCommand
 
         return this;
 
+    }
+
+    /**
+     * @description Sincronizador de inicialização do objeto.
+     * @returns {Promise}
+     */
+    sync()
+    {
+
+        // Vamos contabilizar o acesso
+        this.incSync();
+
+        // Processamento
+        return new Promise(
+            async (resolve, reject) => 
+            {
+
+                try
+                {
+
+                    // Serviço já iniciado
+                    if (this.isStarted)
+                    {
+                        return resolve(this);
+                    }
+
+                    // O acesso que permite ação imediata
+                    if (this.immediateSync())
+                    {
+                        return resolve(await this.init());
+                    }
+
+                    // Os demais acessos quando o serviço não está iniciado deverão aguardar o devido retorno
+                    else
+                    {
+                        this.addSync(() => (resolve(this)));
+                    }
+
+                }
+                catch (error)
+                {
+                    reject(error);
+                }
+
+            }
+        );
     }
 
 }

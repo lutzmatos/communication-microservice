@@ -3,7 +3,6 @@
  */
 
 // Inheritage
-import RabbitMQChannel from './RabbitMQChannel.js';
 import RabbitMQHandler from './RabbitMQHandler.js';
 
 /**

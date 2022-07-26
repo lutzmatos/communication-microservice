@@ -2,13 +2,13 @@
  * Dependencies
  */
 
-import RabbitMQDefault from './RabbitMQDefault.js';
+import RabbitMQAccess from './RabbitMQAccess.js';
 
 /**
  * Implementation
  */
 
-export default class RabbitMQHandler extends RabbitMQDefault
+export default class RabbitMQHandler extends RabbitMQAccess
 {
 
     constructor(...args)
@@ -30,10 +30,10 @@ export default class RabbitMQHandler extends RabbitMQDefault
     {
         console.log('  -->> Connection CLOSE');
 
-        //
+        // Vamos imediatamente que o servidor foi desconectado
         this.turnOffServerAvailable()
 
-        //
+        // Vamos tentar reiniciar o objeto e as suas conexões
         .gracefullyRestart();
 
     }
@@ -53,7 +53,6 @@ export default class RabbitMQHandler extends RabbitMQDefault
     connectionUnbloqued()
     {
         console.log('  -->> Connection UNBLOQUED');
-        console.log();
     }
 
     /***************************************************************************
@@ -64,8 +63,8 @@ export default class RabbitMQHandler extends RabbitMQDefault
     {
         console.log('  ---->> Channel CLOSE');
 
-        //
-        this.turnOffChannelAvailable;
+        // Vamos imediatamente que o canal foi desconectado
+        this.turnOffChannelAvailable();
 
     }
 

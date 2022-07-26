@@ -1,80 +1,8 @@
-import RabbitMQ from './lib/RabbitMQ.js';
+const env = process.env;
 
-// RabbitMQ
-import {
-    EXCHANGE_PRODUCT_TOPIC,
-    PRODUCT_STOCK_UPDATE_QUEUE,
-    PRODUCT_STOCK_UPDATE_ROUTING_KEY,
-    SALES_CONFIRMATION_QUEUE,
-    SALES_CONFIRMATION_ROUTING_KEY
-} from './constants.js';
+export const RABBIT_MQ_HOST = env.RABBIT_MQ_HOST || 'localhost';
+export const RABBIT_MQ_PORT = env.RABBIT_MQ_PORT || 5672;
+export const RABBIT_MQ_USERNAME = env.RABBIT_MQ_USERNAME || 'guest';
+export const RABBIT_MQ_PASSWORD = env.RABBIT_MQ_PASSWORD || 'guest';
 
-export async function connectRabbitMq()
-{
-    try
-    {
-        const mq = new RabbitMQ;
-        await mq.init();
-        // const exchange = await mq.createExchange(EXCHANGE_PRODUCT_TOPIC, 'topic', { durable: true });
-        // const queue1 = await mq.createQueue(PRODUCT_STOCK_UPDATE_QUEUE, { durable: true });
-        // const queue2 = await mq.createQueue(SALES_CONFIRMATION_QUEUE, { durable: true });
-        // const bind1 = await mq.bindQueue(queue1.name, exchange.name, PRODUCT_STOCK_UPDATE_ROUTING_KEY);
-        // const bind2 = await mq.bindQueue(queue2.name, exchange.name, SALES_CONFIRMATION_ROUTING_KEY);
-        const build1 = await mq.buildQueue(
-            {
-                name: EXCHANGE_PRODUCT_TOPIC,
-                type: 'topic',
-                options: 
-                {
-                    durable: true
-                }
-            },
-            {
-                name: PRODUCT_STOCK_UPDATE_QUEUE,
-                options: 
-                {
-                    durable: true
-                }
-            },
-            PRODUCT_STOCK_UPDATE_ROUTING_KEY
-        );
-        const build2 = await mq.buildQueue(
-            {
-                name: EXCHANGE_PRODUCT_TOPIC,
-                type: 'topic',
-                options: 
-                {
-                    durable: true
-                }
-            },
-            {
-                name: SALES_CONFIRMATION_QUEUE,
-                options: 
-                {
-                    durable: true
-                }
-            },
-            SALES_CONFIRMATION_ROUTING_KEY
-        );
-
-        // console.log(exchange);
-        // console.log(queue1);
-        // console.log(queue2);
-        // console.log(bind1);
-        // console.log(bind2);
-        console.log(build1);
-        console.log(build2);
-        await mq.finish();
-
-    }
-    catch (error) 
-    {
-        console.log(
-            '\n',
-            '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n',
-            error,
-            '\n',
-            '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n'
-        );
-}
-}
+export const RABBIT_MQ_URL = `amqp://${RABBIT_MQ_HOST}`;

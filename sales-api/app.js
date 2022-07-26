@@ -1,11 +1,22 @@
+
+
+// import fs from 'fs';
+// import util from 'util';
+
+// fs.writeFile('channel2.txt', util.inspect(channel, { compact: false, depth: 10, breakLength: 400 }), function (err) {
+//     if (err) throw err;
+//     console.log('File is created successfully.');
+// });
+
 import express from "express"; 
 
 import { connectMongoDb } from './src/config/db/mongo/config.js';
-import { connectRabbitMq } from './src/config/rabbitmq/config.js';
 
 import Order from './src/modules/sales/model/Order.js';
-// import { listenToSalesConfirmation } from './src/modules/sales/rabbitmq/salesConfirmationListener.js';
-// import { sendMessageToProductStockUpdateQueue } from './src/modules/product/rabbitmq/productStockUpdateSender.js';
+
+import { connectRabbitMq } from './src/modules/sales/rabbitmq/init.js';
+import { listenToSalesConfirmation } from './src/modules/sales/rabbitmq/listeners.js';
+import { sendMessageToProductStockUpdateQueue } from './src/modules/product/rabbitmq/dispatchers.js';
 
 import middlewareAuth from './src/middlewares/auth/Auth.js';
 
@@ -16,10 +27,14 @@ const PORT = env.PORT || 8082;
 // Permitir respostas JSON
 app.use(express.json()); 
 
-connectRabbitMq();
-connectMongoDb();
+const init = async () =>
+{
+    await connectRabbitMq();
+    await listenToSalesConfirmation();
+}
 
-// listenToSalesConfirmation();
+connectMongoDb();
+init();
 
 // Route check
 app.get(
@@ -41,22 +56,22 @@ app.get(
     '/test/mq',
     async (req, res) => 
     {
-        // sendMessageToProductStockUpdateQueue(
-        //     [
-        //         {
-        //             productId: 1001,
-        //             quantity: 2
-        //         },
-        //         {
-        //             productId: 1002,
-        //             quantity: 2
-        //         },
-        //         {
-        //             productId: 1003,
-        //             quantity: 2
-        //         }
-        //     ]
-        // );
+        sendMessageToProductStockUpdateQueue(
+            [
+                {
+                    productId: 1001,
+                    quantity: 2
+                },
+                {
+                    productId: 1002,
+                    quantity: 2
+                },
+                {
+                    productId: 1003,
+                    quantity: 2
+                }
+            ]
+        );
 
         return res.status(200).json(
             {
@@ -71,6 +86,7 @@ app.get(
 // Checagem de jwt
 app.use(middlewareAuth);
 
+// ...
 app.get(
     '/all',
     async (req, res) => 
