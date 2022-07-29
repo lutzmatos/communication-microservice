@@ -9,7 +9,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SalesProductResponse {
-    private SalvesProductResultResponse result;
+public class SalvesProductResultResponse {
     private List<String> salesIds;
+
 }

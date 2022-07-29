@@ -32,7 +32,7 @@ export async function createInitialData ()
             },
             status: 'APPROVED',
             createdAt: new Date(),
-            UpdatedAt: new Date()
+            updatedAt: new Date()
         }
     );
     await Order.create(
@@ -52,7 +52,7 @@ export async function createInitialData ()
             },
             status: 'REJECTED',
             createdAt: new Date(),
-            UpdatedAt: new Date()
+            updatedAt: new Date()
         }
     );
 

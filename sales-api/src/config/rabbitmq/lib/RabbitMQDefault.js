@@ -66,7 +66,6 @@ export default class RabbitMQDefault extends EventEmitter
         };
 
         this.id = Math.random().toString().replace('0.', '') + ':' + Math.random().toString().replace('0.', '');
-
         this.performed = false;
         this.keepAlive = true;
         this.state = STATE.STOPPED;
@@ -232,44 +231,6 @@ export default class RabbitMQDefault extends EventEmitter
     get isToKeepAlive()
     {
         return this.keepAlive;
-    }
-
-
-    events()
-    {
-        this.on(
-            'starting', 
-            () => 
-            {
-                this.turnOnStarting();
-                console.log('  ==> starting...')
-            }
-        );
-        this.on(
-            'started', 
-            () => 
-            {
-                this.turnOnStarted();
-                console.log('  ==> started...');
-                this.execSync();
-            }
-        );
-        this.on(
-            'stopping', 
-            () => 
-            {
-                this.turnOnStopping();
-                console.log('  ==> stopping...');
-            }
-        );
-        this.on(
-            'stoped', 
-            () => 
-            {
-                this.turnOnStopped();
-                console.log('  ==> stoped...');
-            }
-        );
     }
 
 }

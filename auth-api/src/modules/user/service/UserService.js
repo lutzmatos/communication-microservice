@@ -4,6 +4,7 @@ import UserRepository from './../repository/UserRepository.js';
 import UserException from './../exception/UserException.js';
 import * as httpStatus from './../../../config/constants/httpStatus.js';
 import * as secrets from './../../../config/constants/secrets.js';
+import { tracing } from './../../../config/tracing/helper.js';
 
 class UserService
 {
@@ -12,21 +13,17 @@ class UserService
     {
         try
         {
-
-            console.log(req.authUser);
+            tracing(req, 'UserService.findByEmail');
 
             const { email } = req.params;
             const { authUser } = req;
-
             this.validateRequest(email);
 
             const user = await UserRepository.findByEmail(email);
-
             this.validateUser(user);
-
             this.validateAuthenticatedUser(user, authUser);
 
-            return {
+            const result = {
                 status: 
                 {
                     code: httpStatus.SUCCESS,
@@ -42,6 +39,8 @@ class UserService
                     }
                 }
             };
+
+            return tracing(req, 'UserService.findByEmail', result);
 
         }
         catch (error)
@@ -62,15 +61,13 @@ class UserService
 
         try
         {
+            tracing(req, 'UserService.getAccessToekn');
 
             const { email, password } = req.body;
-
             this.validateAccessToken(email, password);
 
             const user = await UserRepository.findByEmail(email);
-
             this.validateUser(user);
-
             await this.validatePassword(password, user.password);
 
             const authUser = {
@@ -89,7 +86,7 @@ class UserService
                 }
             );
 
-            return {
+            const result = {
                 status: 
                 {
                     code: httpStatus.SUCCESS,
@@ -100,6 +97,9 @@ class UserService
                     accessToken
                 }
             };
+
+            return tracing(req, 'UserService.getAccessToekn', result);
+
         }
         catch (error)
         {
@@ -124,6 +124,7 @@ class UserService
                 'User email was not informed'
             );
         }
+        return this;
     }
 
     validateUser(user)
@@ -135,6 +136,7 @@ class UserService
                 'User not found'
             );
         }
+        return this;
     }
 
     validateAccessToken(email, password)
@@ -146,6 +148,7 @@ class UserService
                 'Email and password are invalid'
             );
         }
+        return this;
     }
 
     async validatePassword(password, hashPassword)
@@ -168,6 +171,7 @@ class UserService
                 'User is invalid'
             );
         }
+        return this;
     }
 
 }

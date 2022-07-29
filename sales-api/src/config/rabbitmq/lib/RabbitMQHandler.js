@@ -26,11 +26,13 @@ export default class RabbitMQHandler extends RabbitMQAccess
      * Handlers: Connection
      **************************************************************************/
 
+    /**
+     * @description Ação acionada quando uma conexão for encerrada.
+     */
     connectionClose()
     {
-        console.log('  -->> Connection CLOSE');
 
-        // Vamos imediatamente que o servidor foi desconectado
+        // Vamos imediatamente informar ao estado corrente que o servidor foi desconectado
         this.turnOffServerAvailable()
 
         // Vamos tentar reiniciar o objeto e as suas conexões
@@ -38,18 +40,26 @@ export default class RabbitMQHandler extends RabbitMQAccess
 
     }
 
+    /**
+     * @description Ação acionada quando uma conexão gerar um erro.
+     */
     connectionError(error)
     {
         console.log('  -->> Connection ERROR');
         console.error(error);
     }
 
+    /**
+     * @description Ação acionada quando ...
+     */
     connectionBloqued(reason)
     {
-        console.log('  -->> Connection BLOQUED');
-        console.log(reason);
+        console.log('  -->> Connection BLOQUED\n', 'reason:', reason);
     }
 
+    /**
+     * @description Ação acionada quando ...
+     */
     connectionUnbloqued()
     {
         console.log('  -->> Connection UNBLOQUED');
@@ -59,31 +69,40 @@ export default class RabbitMQHandler extends RabbitMQAccess
      * Handlers: Channel
      **************************************************************************/
 
+    /**
+     * @description Ação acionada quando um canal for encerrado.
+     */
     channelClose()
     {
-        console.log('  ---->> Channel CLOSE');
 
-        // Vamos imediatamente que o canal foi desconectado
+        // Vamos imediatamente informar ao estado corrente que o canal foi desconectado
         this.turnOffChannelAvailable();
 
     }
 
+    /**
+     * @description Ação acionada quando um canal gerar um erro.
+     */
     channelError(error)
     {
         console.log('  ---->> Channel ERROR');
         console.error(error);
     }
 
+    /**
+     * @description Ação acionada quando ...
+     */
     channelReturn(message)
     {
-        console.log('  ---->> Channel RETURN');
-        console.log('message:', message);
+        console.log('  ---->> Channel RETURN\n', 'message:', message);
     }
 
+    /**
+     * @description Ação acionada quando ...
+     */
     channelDrain()
     {
         console.log('  ---->> Channel DRAIN');
-        console.log();
     }
 
 }

@@ -11,9 +11,9 @@ spring:
 
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://${POSTGRES_PRODUCT_HOST:localhost}:${POSTGRES_PRODUCT_PORT_EXTERNAL:40102}/product-db
-    username: postgres
-    password: postgres
+    url: jdbc:postgresql://${POSTGRES_PRODUCT_HOST:localhost}:${POSTGRES_PRODUCT_PORT:40102}/${POSTGRES_PRODUCT_DB:product-db}
+    username: ${POSTGRES_PRODUCT_USER:postgres}
+    password: ${POSTGRES_PRODUCT_PASSWORD:postgres}
     initialization-mode: always
     initialize: true
     continue-on-error: true

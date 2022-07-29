@@ -18,6 +18,7 @@ export function connectMongoDb()
             "user": MONGO_USERNAME,
             "pass": MONGO_PASSWORD,
             "useNewUrlParser": true,
+            "serverSelectionTimeoutMS": 180000
             // "useUnifiedTopology": true,
             // "useCreateIndex": true,
             // "useFindAndModify": false
@@ -35,7 +36,7 @@ export function connectMongoDb()
             // console.log(MONGO_PASSWORD);
             console.log('MongoDB conectado!');
             console.log('-------------------------------------------------');
-            createInitialData();
+            //createInitialData();
         }
     );
 

@@ -25,9 +25,19 @@ const OrderSchema = new Schema(
             type: Date,
             required: true
         },
-        UpdatedAt:
+        updatedAt:
         {
             type: Date,
+            required: true
+        },
+        transactionid:
+        {
+            type: String,
+            required: true
+        },
+        serviceid:
+        {
+            type: String,
             required: true
         }
     }

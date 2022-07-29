@@ -9,6 +9,8 @@ import {
     SALES_CONFIRMATION_ROUTING_KEY
 } from '../../config/rabbitmq.js';
 
+import OrderService from './../service/OrderService.js'
+
 export async function listenToSalesConfirmation()
 {
 
@@ -19,19 +21,22 @@ export async function listenToSalesConfirmation()
 
         await mq.consume(
             SALES_CONFIRMATION_QUEUE,
-            (message) =>
+            async (message) =>
             {
-                console.log(`SALES: ${message.content.toString()}`);
-            }
+                await OrderService.updateOrder(message);
+            },
+            // {
+            //     noAck: true
+            // }
         );
 
-        await  mq.consume(
-            PRODUCT_STOCK_UPDATE_QUEUE,
-            (message) =>
-            {
-                console.log(`PRODUCT: ${message.content.toString()}`);
-            }
-        );
+        // await  mq.consume(
+        //     PRODUCT_STOCK_UPDATE_QUEUE,
+        //     (message) =>
+        //     {
+        //         console.log(`PRODUCT: ${message.content.toString()}`);
+        //     }
+        // );
 
         // setTimeout(
         //     async () => 

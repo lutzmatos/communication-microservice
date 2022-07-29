@@ -70,8 +70,10 @@ export default class RabbitMQCommand extends RabbitMQExchange
                     callback(message);
 
                     // Aviso de recebido
+                    //if (options.durable || !options.noAck)
                     if (options.durable)
                     {
+                        //console.log('ACK....');
                         this.getChannel().ack(message);
                     }
 

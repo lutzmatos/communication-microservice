@@ -21,7 +21,7 @@ class RabbitMQ extends RabbitMQCommand
     constructor(...args)
     {
         super(...args);
-        this.events();
+        this.installEvents();
     }
 
     /***************************************************************************

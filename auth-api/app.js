@@ -1,8 +1,6 @@
 import express from "express";
 
-// import * as db from './src/config/db/initial.js';
-// db.createInicialData();
-
+import tracing from './src/config/tracing/index.js';
 import userRoutes from './src/modules/user/routes/UserRoutes.js';
 
 const app = express();
@@ -11,6 +9,9 @@ const PORT = env.PORT || 8080;
 
 // Permitir respostas JSON
 app.use(express.json()); 
+
+// Usar rastreamento
+app.use(tracing); 
 
 // Route check
 app.get(

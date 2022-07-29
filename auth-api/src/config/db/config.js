@@ -17,6 +17,10 @@ const sequelize = new Sequelize(
             unserscored: true,
             underscoredAll: true,
             freezeTableName: true
+        }, 
+        pool: 
+        {
+            acquire: 180000
         }
     }
 );

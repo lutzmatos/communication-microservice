@@ -2,7 +2,7 @@
  * Dependencies
  */
 
-import RabbitMQDefault from './RabbitMQDefault.js';
+import RabbitMQEvent from './RabbitMQEvent.js';
 
 /**
  * Attributes
@@ -18,7 +18,7 @@ const local = {
  * Implementation
  */
 
-export default class RabbitMAccess extends RabbitMQDefault
+export default class RabbitMAccess extends RabbitMQEvent
 {
 
     constructor(...args)
